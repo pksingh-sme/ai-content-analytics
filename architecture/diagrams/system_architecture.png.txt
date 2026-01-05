@@ -1,0 +1,11 @@
+# System Architecture Diagram
+
+This is a placeholder for the system architecture diagram PNG file.
+The actual diagram would visualize the multi-layer architecture:
+
+- Client Layer (React Frontend, Mobile App)
+- API Gateway Layer (Load Balancer, API Gateway)
+- Service Layer (Upload, Processing, Query, Agent, Metadata Services)
+- AI/ML Layer (Document OCR, Image Vision, Audio STT, Video Processing, Embedding Model, LLM Service)
+- Data Layer (Vector Database, Metadata DB, File Storage)
+- Infrastructure (Docker, Kubernetes, Monitoring)

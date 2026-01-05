@@ -1,0 +1,24 @@
+sequenceDiagram
+    participant User
+    participant API
+    participant Agent
+    participant LLM
+    participant VectorDB
+    participant Tools
+    
+    User->>API: Request multi-step workflow
+    API->>Agent: Initialize agent with query
+    Agent->>LLM: Analyze query & plan steps
+    LLM-->>Agent: Step plan
+    loop For each step
+        Agent->>Tools: Execute tool (search, process, etc.)
+        Tools->>VectorDB: Query/retrieve data
+        VectorDB-->>Tools: Return results
+        Tools-->>Agent: Tool result
+        Agent->>LLM: Process tool result
+        LLM-->>Agent: Processed result
+    end
+    Agent->>LLM: Synthesize final response
+    LLM-->>Agent: Final response
+    Agent-->>API: Return response with steps
+    API-->>User: Return complete response

@@ -1,0 +1,31 @@
+graph TB
+    A[User Uploads File] --> B[API Gateway]
+    B --> C{File Type?}
+    C -->|Document| D[Document Processing]
+    C -->|Image| E[Image Processing]
+    C -->|Audio| F[Audio Processing]
+    C -->|Video| G[Video Processing]
+    
+    D --> H[Extract Text]
+    E --> I[OCR & Vision Analysis]
+    F --> J[Speech-to-Text]
+    G --> K[Frame Extraction & Audio Processing]
+    
+    H --> L[Text Chunking]
+    I --> L
+    J --> L
+    K --> L
+    
+    L --> M[Generate Embeddings]
+    M --> N[Store in Vector DB]
+    
+    O[User Query] --> P[Semantic Search]
+    P --> N
+    N --> Q[Retrieve Relevant Chunks]
+    Q --> R[LLM Response Generation]
+    R --> S[Return Answer with Citations]
+    
+    T[Agent Workflow] --> U[Multi-step Planning]
+    U --> V[Execute Steps]
+    V --> W[Synthesize Results]
+    W --> R

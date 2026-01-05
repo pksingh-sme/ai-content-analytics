@@ -1,0 +1,13 @@
+# Backend Workflow Diagram
+
+This is a placeholder for the backend workflow diagram PNG file.
+The actual diagram would show the flow:
+
+1. User uploads files (documents, images, audio, video)
+2. API routes to appropriate processing service
+3. Content extraction (text, OCR, STT, etc.)
+4. Text chunking and embedding generation
+5. Storage in vector database
+6. User queries trigger semantic search
+7. LLM generates response with citations
+8. Agent workflows for multi-step processes

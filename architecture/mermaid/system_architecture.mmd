@@ -1,0 +1,79 @@
+graph TB
+    subgraph "Client Layer"
+        A[React Frontend]
+        B[Mobile App]
+    end
+    
+    subgraph "API Gateway Layer"
+        C[Load Balancer]
+        D[API Gateway]
+    end
+    
+    subgraph "Service Layer"
+        E[Upload Service]
+        F[Processing Service]
+        G[Query Service]
+        H[Agent Service]
+        I[Metadata Service]
+    end
+    
+    subgraph "AI/ML Layer"
+        J[Document OCR]
+        K[Image Vision]
+        L[Audio STT]
+        M[Video Processing]
+        N[Embedding Model]
+        O[LLM Service]
+    end
+    
+    subgraph "Data Layer"
+        P[Vector Database]
+        Q[Metadata DB]
+        R[File Storage]
+    end
+    
+    subgraph "Infrastructure"
+        S[Docker Containers]
+        T[Kubernetes]
+        U[Monitoring]
+    end
+    
+    A --> C
+    B --> C
+    C --> D
+    D --> E
+    D --> F
+    D --> G
+    D --> H
+    D --> I
+    
+    E --> J
+    E --> K
+    E --> L
+    E --> M
+    
+    F --> N
+    G --> N
+    G --> O
+    H --> O
+    
+    J --> P
+    K --> P
+    L --> P
+    M --> P
+    N --> P
+    
+    J --> Q
+    K --> Q
+    L --> Q
+    M --> Q
+    E --> Q
+    F --> Q
+    G --> Q
+    H --> Q
+    
+    E --> R
+    F --> R
+    
+    S --> T
+    U --> T
