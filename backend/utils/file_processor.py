@@ -79,18 +79,24 @@ async def extract_text_from_docx(file_path: str) -> str:
 
 async def process_image(file_path: str) -> str:
     """
-    Process image files and extract text using OCR
+    Process image files and extract text using OCR and BLIP-2 vision-language model
     """
     try:
         # Extract text using OCR
         image = Image.open(file_path)
-        text = pytesseract.image_to_string(image)
+        ocr_text = pytesseract.image_to_string(image)
         
-        # For multimodal models, we might also want to describe the image
-        # This would require a vision model, which we'll simulate for now
-        image_description = f"Image content: {text}" if text.strip() else "Image processed - no text detected"
+        # Use BLIP-2 for image understanding and description
+        from ..services.blip2_service import blip2_service
+        caption = blip2_service.generate_caption(file_path)
         
-        return image_description
+        # Combine OCR text and BLIP-2 caption
+        if ocr_text.strip():
+            result = f"OCR Text: {ocr_text}\nImage Description: {caption}"
+        else:
+            result = f"Image Description: {caption}"
+        
+        return result
     except Exception as e:
         return f"Error processing image: {str(e)}"
 

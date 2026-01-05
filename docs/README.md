@@ -6,6 +6,7 @@ A production-ready full-stack platform for processing documents, images, audio, 
 
 - **Multi-Modal Processing**: Handle documents (PDF, DOCX, etc.), images (JPG, PNG, etc.), audio (MP3, WAV, etc.), and video (MP4, MOV, etc.)
 - **AI-Powered Analytics**: Extract intelligence from various content types using state-of-the-art AI models
+- **Vision-Language Understanding**: Advanced image analysis using BLIP-2 for captioning, question answering, and detailed descriptions
 - **Semantic Search**: Vector-based search with RAG (Retrieval Augmented Generation) for contextual understanding
 - **Agentic Workflows**: Multi-step AI workflows for complex analytical tasks
 - **Interactive Chat**: AI-powered Q&A with citations to source documents
@@ -44,6 +45,7 @@ Key components:
 - **Processing Service**: Content extraction and transformation
 - **Query Service**: Semantic search and RAG implementation
 - **Agent Service**: Multi-step workflow orchestration
+- **BLIP-2 Service**: Vision-language understanding for image analysis
 - **Vector Database**: For semantic search capabilities
 
 ## 🚀 Quick Start
@@ -76,6 +78,7 @@ docker-compose up --build
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
+   - BLIP-2 Image Analysis: http://localhost:8000/api/v1/blip2/image
 
 ### Manual Setup
 

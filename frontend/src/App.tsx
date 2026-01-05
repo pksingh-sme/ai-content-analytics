@@ -7,6 +7,7 @@ import UploadSection from './components/UploadSection';
 import SearchSection from './components/SearchSection';
 import ChatSection from './components/ChatSection';
 import Dashboard from './components/Dashboard';
+import ImageAnalysis from '../components/ImageAnalysis';
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -30,6 +31,7 @@ function App() {
             <Route path="/upload" element={<UploadSection />} />
             <Route path="/search" element={<SearchSection />} />
             <Route path="/chat" element={<ChatSection />} />
+            <Route path="/image-analysis" element={<ImageAnalysis />} />
           </Routes>
         </MainContent>
       </AppContainer>

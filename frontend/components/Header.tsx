@@ -54,6 +54,7 @@ const Header: React.FC = () => {
           <StyledNavLink to="/upload">Upload</StyledNavLink>
           <StyledNavLink to="/search">Search</StyledNavLink>
           <StyledNavLink to="/chat">Chat</StyledNavLink>
+          <StyledNavLink to="/image-analysis">Image Analysis</StyledNavLink>
         </NavLinks>
       </Nav>
     </HeaderContainer>

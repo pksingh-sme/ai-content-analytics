@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .api import router as api_router
+from .api.blip2_routes import router as blip2_router
 from .config import settings
 
 app = FastAPI(
@@ -20,6 +21,7 @@ app.add_middleware(
 
 # Include API routes
 app.include_router(api_router, prefix="/api/v1")
+app.include_router(blip2_router, prefix="/api/v1/blip2")
 
 @app.get("/")
 async def root():
