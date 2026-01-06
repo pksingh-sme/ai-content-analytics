@@ -109,11 +109,11 @@ The platform includes comprehensive evaluation and reliability features:
 - Python 3.8+
 - Node.js 16+
 
-### Local Development
+### Environment Setup
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/multi-model-content-analytics.git
+git clone https://github.com/pksingh-sme/ai-content-analytics.git
 cd multi-model-content-analytics
 ```
 
@@ -123,12 +123,20 @@ cp .env.example .env
 # Edit .env to add your API keys
 ```
 
-3. Start the services:
+3. Configure your `.env` file with appropriate values:
+   - `OPENAI_API_KEY`: Your OpenAI API key for LLM functionality
+   - `PINECONE_API_KEY`: Your Pinecone API key for vector database
+   - `HUGGINGFACE_API_KEY`: Your Hugging Face API key (if using Hugging Face models)
+   - Adjust other settings as needed (database URLs, file storage, etc.)
+
+### Local Development
+
+1. Start the services:
 ```bash
 docker-compose up --build
 ```
 
-4. Access the application:
+2. Access the application:
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
