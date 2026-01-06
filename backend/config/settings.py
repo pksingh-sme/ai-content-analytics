@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     vector_db_collection: str = "content_embeddings"
     embedding_model: str = "text-embedding-ada-002"  # or local model
     
+    # Pinecone settings
+    pinecone_api_key: Optional[str] = None
+    pinecone_environment: str = "us-west1-gcp-free"
+    pinecone_index_name: str = "content-embeddings"
+    pinecone_namespace: str = "multimodal-content"
+    
     # LLM settings
     default_llm_model: str = "gpt-4-turbo"  # or local model
     

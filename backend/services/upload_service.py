@@ -8,6 +8,7 @@ from ..models.content import ContentType
 from ..utils.file_processor import process_document, process_image, process_audio, process_video
 from ..utils.embeddings import generate_embeddings
 from ..utils.database import save_content_metadata, update_processing_status
+from ..services.pinecone_service import pinecone_service
 
 
 async def process_file_upload(

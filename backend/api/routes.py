@@ -14,6 +14,7 @@ from ..services.query_service import semantic_search_and_answer
 from ..services.agent_service import execute_agent_workflow
 from ..services.metadata_service import get_content_metadata
 from ..api.blip2_routes import router as blip2_router
+from ..api.rag_routes import router as rag_router
 
 router = APIRouter()
 

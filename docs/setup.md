@@ -21,10 +21,16 @@ Create a `.env` file in the project root with the following variables:
 OPENAI_API_KEY=your_openai_api_key_here
 ANTHROPIC_API_KEY=your_anthropic_api_key_here  # Optional
 HUGGINGFACE_API_KEY=your_huggingface_api_key_here  # Optional
+PINECONE_API_KEY=your_pinecone_api_key_here  # For Pinecone vector database
 
 # Database Configuration
 DATABASE_URL=sqlite:///./multi_modal_content.db
 VECTOR_DB_URL=http://localhost:8080
+
+# Pinecone Configuration
+PINECONE_API_KEY=your_pinecone_api_key_here
+PINECONE_ENVIRONMENT=us-west1-gcp-free  # or your region
+PINECONE_INDEX_NAME=content-embeddings
 
 # Application Settings
 UPLOAD_FOLDER=./uploads

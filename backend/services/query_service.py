@@ -6,6 +6,7 @@ from ..models.content import QueryRequest, QueryResponse, SearchResult
 from ..utils.llm_client import get_llm_response
 from ..utils.embeddings import semantic_search as vector_search
 from ..utils.database import get_content_by_ids
+from ..services.pinecone_service import pinecone_service
 
 
 async def semantic_search_and_answer(
@@ -14,35 +15,26 @@ async def semantic_search_and_answer(
     include_sources: bool = True
 ) -> QueryResponse:
     """
-    Perform semantic search and generate AI-powered response
+    Perform semantic search and generate AI-powered response using RAG pipeline
     """
-    # Perform vector search to find relevant content
-    search_results = await vector_search(query, top_k=top_k)
+    from ..services.rag_service import rag_pipeline
     
-    # Prepare context from search results
-    context_texts = []
+    # Execute the RAG pipeline
+    result = await rag_pipeline.query(query, top_k)
+    
     sources = []
-    
-    for result in search_results:
-        context_texts.append(result.content)
-        if include_sources:
+    if include_sources and result.get('retrieved_documents'):
+        for doc in result['retrieved_documents']:
             sources.append({
-                "content": result.content,
-                "score": result.score,
-                "source": result.source,
-                "page_number": result.page_number,
-                "chunk_id": result.chunk_id
+                "content": doc['content'],
+                "score": doc['score'],
+                "source": doc['source'],
+                "page_number": doc['source'].get('page_number')
             })
-    
-    # Combine context for LLM
-    context = "\n\n".join(context_texts)
-    
-    # Generate response using LLM
-    llm_response = await get_llm_response(query, context)
     
     return QueryResponse(
         query=query,
-        response=llm_response,
+        response=result['response'],
         sources=sources if include_sources else None,
         timestamp=datetime.utcnow()
     )
@@ -63,22 +55,15 @@ async def query_with_rag(
     """
     Query with RAG (Retrieval Augmented Generation)
     """
-    # Search for relevant documents
-    search_results = await semantic_search(query, top_k)
+    from ..services.rag_service import rag_pipeline
     
-    # Prepare context from search results
-    context = "\n\n".join([result.content for result in search_results])
-    
-    # Generate response with LLM using context
-    response = await get_llm_response(
-        query=query,
-        context=context,
-        model=llm_model
-    )
+    # Execute the RAG pipeline
+    result = await rag_pipeline.query(query, top_k, model=llm_model)
     
     return {
         "query": query,
-        "response": response,
-        "sources": [result.dict() for result in search_results],
-        "timestamp": datetime.utcnow().isoformat()
+        "response": result['response'],
+        "sources": result['retrieved_documents'],
+        "timestamp": datetime.utcnow().isoformat(),
+        "processing_time": result.get('processing_time', 0)
     }
