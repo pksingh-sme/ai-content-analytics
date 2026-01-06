@@ -12,6 +12,7 @@ A production-ready full-stack platform for processing documents, images, audio, 
 - **Advanced Agentic Workflows**: Multi-step AI workflows with orchestration for complex analytical tasks
 - **Agent Orchestrator**: Sophisticated agent system with workflow creation, execution, and management
 - **Evaluation & Reliability**: Comprehensive evaluation metrics including RAG relevance (precision/recall), hallucination detection, and confidence scoring
+- **Logging & Observability**: Structured JSON logging for all operations with metrics tracking and visualization dashboard
 - **Interactive Chat**: AI-powered Q&A with citations to source documents
 - **Scalable Architecture**: Containerized microservices with Docker and Kubernetes support
 
@@ -52,7 +53,35 @@ Key components:
 - **RAG Pipeline Service**: Advanced Retrieval Augmented Generation with Pinecone integration
 - **Agent Orchestrator Service**: Multi-step agent workflows with planning and execution capabilities
 - **Evaluation Service**: RAG relevance metrics, hallucination detection, and confidence scoring
+- **Logging Service**: Structured JSON logging, metrics tracking, and observability dashboard
 - **Vector Database**: Pinecone for scalable semantic search capabilities
+
+## 🔍 Logging & Observability Features
+
+The platform includes comprehensive logging and observability features:
+
+- **Structured JSON Logging**: All operations are logged in JSON format with contextual information
+- **Metrics Tracking**: Automatic tracking of queries processed, response times, and error rates
+- **File Upload Logging**: Detailed logging of file uploads with metadata
+- **RAG Retrieval Logging**: Tracking of RAG queries and retrieval performance
+- **Agent Workflow Logging**: Monitoring of multi-step agent workflows
+- **Error Logging**: Comprehensive error tracking with stack traces
+- **Metrics Dashboard**: Streamlit-based dashboard for real-time metrics visualization
+
+### Logging Endpoints
+
+- `GET /api/v1/logging/metrics` - Application metrics summary
+- `GET /api/v1/logging/metrics/history` - Recent metrics history
+- `GET /api/v1/logging/health` - Health check endpoint
+
+### Dashboard
+
+A Streamlit dashboard is available at `dashboard/observability_dashboard.py` to visualize metrics including:
+
+- Query volume over time
+- Response time trends and distribution
+- Request type distribution
+- Error tracking and analysis
 
 ## 📊 Evaluation & Reliability Features
 

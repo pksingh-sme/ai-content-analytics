@@ -4,6 +4,12 @@ from typing import Dict, Any, List, Optional, Callable
 from datetime import datetime
 import logging
 from enum import Enum
+import time
+
+from ..logging import get_logger
+from ..logging.metrics import metrics_tracker
+
+logger = get_logger(__name__)
 
 from ..config import settings
 from ..utils.llm_client import get_llm_response
@@ -76,16 +82,29 @@ class AgentOrchestrator:
         max_steps: int = 10
     ) -> Dict[str, Any]:
         """Execute a multi-step workflow"""
+        start_time = time.time()
+        
         if workflow_id not in self.workflows:
-            raise ValueError(f"Workflow {workflow_id} not found")
+            error_msg = f"Workflow {workflow_id} not found"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+        
+        logger.info(
+            f"Starting execution of workflow: {workflow_id}",
+            extra={
+                "workflow_id": workflow_id,
+                "initial_context_keys": list(initial_context.keys())
+            }
+        )
         
         workflow = self.workflows[workflow_id]
         context = initial_context.copy()
         execution_results = []
         
-        logger.info(f"Starting execution of workflow: {workflow_id}")
+        step_count = 0
         
         for step in workflow[:max_steps]:
+            step_start_time = time.time()
             logger.info(f"Executing step: {step.step_id} ({step.step_type.value})")
             
             try:
@@ -102,8 +121,20 @@ class AgentOrchestrator:
                 
                 step.status = "completed"
                 step.result = step_result
+                step_count += 1
+                
+                step_execution_time = time.time() - step_start_time
+                logger.info(
+                    f"Step {step.step_id} completed",
+                    extra={
+                        "step_id": step.step_id,
+                        "step_type": step.step_type.value,
+                        "execution_time": step_execution_time
+                    }
+                )
                 
             except Exception as e:
+                step_execution_time = time.time() - step_start_time
                 logger.error(f"Error executing step {step.step_id}: {str(e)}")
                 step.status = "failed"
                 step.error = str(e)
@@ -113,16 +144,56 @@ class AgentOrchestrator:
                     'timestamp': datetime.utcnow().isoformat()
                 })
                 
+                # Log the error
+                logger.error(
+                    f"Agent workflow step failed: {str(e)}",
+                    extra={
+                        "workflow_id": workflow_id,
+                        "step_id": step.step_id,
+                        "step_type": step.step_type.value,
+                        "execution_time": step_execution_time,
+                        "error_type": type(e).__name__
+                    },
+                    exc_info=True
+                )
+                
+                # Track the error in metrics
+                metrics_tracker.log_error(
+                    error_type=type(e).__name__,
+                    error_message=str(e),
+                    context={
+                        "workflow_id": workflow_id,
+                        "step_id": step.step_id,
+                        "step_type": step.step_type.value
+                    }
+                )
+                
                 # Optionally continue or fail fast based on configuration
                 # For now, we'll continue execution
                 continue
+        
+        execution_time = time.time() - start_time
+        
+        # Log the agent workflow execution
+        metrics_tracker.log_agent_workflow(workflow_id, step_count, execution_time)
+        
+        logger.info(
+            f"Workflow {workflow_id} execution completed",
+            extra={
+                "workflow_id": workflow_id,
+                "steps_completed": step_count,
+                "execution_time": execution_time,
+                "status": "completed"
+            }
+        )
         
         return {
             'workflow_id': workflow_id,
             'status': 'completed',
             'results': execution_results,
             'final_context': context,
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': datetime.utcnow().isoformat(),
+            'execution_time': execution_time
         }
     
     async def _execute_step(self, step: AgentStep, context: Dict[str, Any]) -> Any:

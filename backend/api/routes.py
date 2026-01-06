@@ -17,6 +17,7 @@ from ..api.blip2_routes import router as blip2_router
 from ..api.rag_routes import router as rag_router
 from ..api.agent_routes import router as agent_router
 from ..evaluation.api import router as evaluation_router
+from ..logging.api import router as logging_router
 
 router = APIRouter()
 
