@@ -4,6 +4,7 @@ from .api import router as api_router
 from .api.blip2_routes import router as blip2_router
 from .api.rag_routes import router as rag_router
 from .api.agent_routes import router as agent_router
+from .evaluation.api import router as evaluation_router
 from .config import settings
 
 app = FastAPI(
@@ -26,6 +27,7 @@ app.include_router(api_router, prefix="/api/v1")
 app.include_router(blip2_router, prefix="/api/v1/blip2")
 app.include_router(rag_router, prefix="/api/v1")
 app.include_router(agent_router, prefix="/api/v1")
+app.include_router(evaluation_router, prefix="/api/v1")
 
 @app.get("/")
 async def root():

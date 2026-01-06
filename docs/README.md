@@ -11,6 +11,7 @@ A production-ready full-stack platform for processing documents, images, audio, 
 - **Semantic Search**: Vector-based search with RAG (Retrieval Augmented Generation) for contextual understanding
 - **Advanced Agentic Workflows**: Multi-step AI workflows with orchestration for complex analytical tasks
 - **Agent Orchestrator**: Sophisticated agent system with workflow creation, execution, and management
+- **Evaluation & Reliability**: Comprehensive evaluation metrics including RAG relevance (precision/recall), hallucination detection, and confidence scoring
 - **Interactive Chat**: AI-powered Q&A with citations to source documents
 - **Scalable Architecture**: Containerized microservices with Docker and Kubernetes support
 
@@ -50,7 +51,27 @@ Key components:
 - **BLIP-2 Service**: Vision-language understanding for image analysis
 - **RAG Pipeline Service**: Advanced Retrieval Augmented Generation with Pinecone integration
 - **Agent Orchestrator Service**: Multi-step agent workflows with planning and execution capabilities
+- **Evaluation Service**: RAG relevance metrics, hallucination detection, and confidence scoring
 - **Vector Database**: Pinecone for scalable semantic search capabilities
+
+## 📊 Evaluation & Reliability Features
+
+The platform includes comprehensive evaluation and reliability features:
+
+- **RAG Relevance Metrics**: Precision, recall, and F1-score for retrieved documents
+- **Hallucination Detection**: Analysis of LLM responses against retrieved documents to detect unsupported claims
+- **Confidence Scoring**: Confidence metrics for each response
+- **Evaluation API**: Endpoints for evaluation metrics at `/api/v1/evaluation/`
+- **Metric Logging**: Persistent logging of all evaluation metrics per query
+- **Visualization Tools**: Jupyter notebooks with charts and analysis of performance metrics
+
+### Evaluation Endpoints
+
+- `POST /api/v1/evaluation/rag` - Full RAG pipeline evaluation
+- `POST /api/v1/evaluation/rag-relevance` - RAG relevance metrics
+- `POST /api/v1/evaluation/hallucination` - Hallucination detection
+- `GET /api/v1/evaluation/summary` - Summary of all evaluations
+- `GET /api/v1/evaluation/logs` - All evaluation logs
 
 ## 🚀 Quick Start
 

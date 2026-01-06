@@ -16,6 +16,7 @@ from ..services.metadata_service import get_content_metadata
 from ..api.blip2_routes import router as blip2_router
 from ..api.rag_routes import router as rag_router
 from ..api.agent_routes import router as agent_router
+from ..evaluation.api import router as evaluation_router
 
 router = APIRouter()
 
