@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .api import router as api_router
 from .api.blip2_routes import router as blip2_router
 from .api.rag_routes import router as rag_router
+from .api.agent_routes import router as agent_router
 from .config import settings
 
 app = FastAPI(
@@ -24,6 +25,7 @@ app.add_middleware(
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(blip2_router, prefix="/api/v1/blip2")
 app.include_router(rag_router, prefix="/api/v1")
+app.include_router(agent_router, prefix="/api/v1")
 
 @app.get("/")
 async def root():

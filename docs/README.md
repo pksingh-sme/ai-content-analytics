@@ -9,7 +9,8 @@ A production-ready full-stack platform for processing documents, images, audio, 
 - **Vision-Language Understanding**: Advanced image analysis using BLIP-2 for captioning, question answering, and detailed descriptions
 - **Advanced RAG Pipeline**: Comprehensive Retrieval Augmented Generation with Pinecone vector database
 - **Semantic Search**: Vector-based search with RAG (Retrieval Augmented Generation) for contextual understanding
-- **Agentic Workflows**: Multi-step AI workflows for complex analytical tasks
+- **Advanced Agentic Workflows**: Multi-step AI workflows with orchestration for complex analytical tasks
+- **Agent Orchestrator**: Sophisticated agent system with workflow creation, execution, and management
 - **Interactive Chat**: AI-powered Q&A with citations to source documents
 - **Scalable Architecture**: Containerized microservices with Docker and Kubernetes support
 
@@ -48,6 +49,7 @@ Key components:
 - **Agent Service**: Multi-step workflow orchestration
 - **BLIP-2 Service**: Vision-language understanding for image analysis
 - **RAG Pipeline Service**: Advanced Retrieval Augmented Generation with Pinecone integration
+- **Agent Orchestrator Service**: Multi-step agent workflows with planning and execution capabilities
 - **Vector Database**: Pinecone for scalable semantic search capabilities
 
 ## 🚀 Quick Start
