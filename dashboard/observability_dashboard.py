@@ -1,249 +1,317 @@
+#!/usr/bin/env python3
+"""
+Observability Dashboard for AI Content Analytics Platform
+Provides real-time visualization of metrics, logs, and system health
+"""
+
 import streamlit as st
+import requests
+import json
+import time
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import json
-import os
 from datetime import datetime, timedelta
-import time
+import altair as alt
 
-# Set page config
-st.set_page_config(
-    page_title="AI Content Analytics - Observability Dashboard",
-    page_icon="📊",
-    layout="wide"
-)
+# Configuration
+API_BASE_URL = "http://localhost:8000/api/v1"
+REFRESH_INTERVAL = 5  # seconds
 
-# Title
-st.title("📊 AI Content Analytics - Observability Dashboard")
-
-# Sidebar for configuration
-st.sidebar.header("Dashboard Configuration")
-refresh_interval = st.sidebar.slider("Refresh Interval (seconds)", 1, 30, 10)
-show_raw_data = st.sidebar.checkbox("Show Raw Metrics Data")
-
-# Auto-refresh
-if 'last_refresh' not in st.session_state:
-    st.session_state.last_refresh = time.time()
-
-if time.time() - st.session_state.last_refresh > refresh_interval:
-    st.session_state.last_refresh = time.time()
-    st.rerun()
-
-# Load metrics data
-def load_metrics():
-    metrics_file = "logs/metrics.json"
-    if os.path.exists(metrics_file):
-        try:
-            with open(metrics_file, 'r') as f:
-                return json.load(f)
-        except:
-            return {
-                'queries_processed': 0,
-                'total_response_time': 0.0,
-                'query_count': 0,
-                'rag_retrieval_count': 0,
-                'file_upload_count': 0,
-                'agent_workflow_count': 0,
-                'error_count': 0,
-                'request_history': []
-            }
-    else:
-        return {
-            'queries_processed': 0,
-            'total_response_time': 0.0,
-            'query_count': 0,
-            'rag_retrieval_count': 0,
-            'file_upload_count': 0,
-            'agent_workflow_count': 0,
-            'error_count': 0,
-            'request_history': []
-        }
-
-metrics = load_metrics()
-
-# Create columns for key metrics
-col1, col2, col3, col4, col5 = st.columns(5)
-
-with col1:
-    st.metric(
-        label="Total Queries",
-        value=metrics['queries_processed'],
-        delta="+" + str(len([r for r in metrics['request_history'] if r.get('type') == 'query' and datetime.fromisoformat(r['timestamp'].replace('Z', '+00:00')) > datetime.now() - timedelta(hours=1)])) + " (last hour)"
-    )
-
-with col2:
-    avg_response_time = metrics['total_response_time'] / metrics['query_count'] if metrics['query_count'] > 0 else 0
-    st.metric(
-        label="Avg Response Time (s)",
-        value=f"{avg_response_time:.2f}",
-        delta="seconds"
-    )
-
-with col3:
-    st.metric(
-        label="RAG Retrievals",
-        value=metrics['rag_retrieval_count'],
-        delta="+" + str(len([r for r in metrics['request_history'] if r.get('type') == 'rag_retrieval' and datetime.fromisoformat(r['timestamp'].replace('Z', '+00:00')) > datetime.now() - timedelta(hours=1)])) + " (last hour)"
-    )
-
-with col4:
-    st.metric(
-        label="File Uploads",
-        value=metrics['file_upload_count'],
-        delta="+" + str(len([r for r in metrics['request_history'] if r.get('type') == 'file_upload' and datetime.fromisoformat(r['timestamp'].replace('Z', '+00:00')) > datetime.now() - timedelta(hours=1)])) + " (last hour)"
-    )
-
-with col5:
-    st.metric(
-        label="Agent Workflows",
-        value=metrics['agent_workflow_count'],
-        delta="+" + str(len([r for r in metrics['request_history'] if r.get('type') == 'agent_workflow' and datetime.fromisoformat(r['timestamp'].replace('Z', '+00:00')) > datetime.now() - timedelta(hours=1)])) + " (last hour)"
-    )
-
-# Create tabs for different visualizations
-tab1, tab2, tab3, tab4 = st.tabs(["📈 Overview", "⏱️ Performance", "📊 Request Types", "⚠️ Errors"])
-
-with tab1:
-    # Create a dataframe for visualization
-    if metrics['request_history']:
-        df = pd.DataFrame(metrics['request_history'])
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-        
-        # Group by hour for visualization
-        df['hour'] = df['timestamp'].dt.floor('H')
-        hourly_counts = df.groupby(['hour', 'type']).size().reset_index(name='count')
-        
-        # Create line chart
-        fig = px.line(
-            hourly_counts, 
-            x='hour', 
-            y='count', 
-            color='type',
-            title='Request Volume Over Time',
-            labels={'hour': 'Time', 'count': 'Number of Requests', 'type': 'Request Type'}
-        )
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info("No metrics data available yet. Process some requests to see metrics.")
-
-with tab2:
-    if metrics['request_history']:
-        df = pd.DataFrame(metrics['request_history'])
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-        
-        # Filter for queries with response time
-        query_data = df[df['type'] == 'query']
-        if not query_data.empty and 'response_time' in query_data.columns:
-            # Response time trend
-            fig_response = px.line(
-                query_data,
-                x='timestamp',
-                y='response_time',
-                title='Query Response Time Trend',
-                labels={'response_time': 'Response Time (s)', 'timestamp': 'Time'}
-            )
-            st.plotly_chart(fig_response, use_container_width=True)
-            
-            # Response time histogram
-            fig_hist = px.histogram(
-                query_data,
-                x='response_time',
-                nbins=20,
-                title='Distribution of Response Times',
-                labels={'response_time': 'Response Time (s)', 'count': 'Frequency'}
-            )
-            st.plotly_chart(fig_hist, use_container_width=True)
+def get_metrics():
+    """Fetch metrics from the backend API"""
+    try:
+        response = requests.get(f"{API_BASE_URL}/logging/metrics/detailed", timeout=5)
+        if response.status_code == 200:
+            return response.json()
         else:
-            st.info("No query response time data available.")
-    else:
-        st.info("No metrics data available yet.")
+            st.error(f"Failed to fetch metrics: {response.status_code}")
+            return None
+    except Exception as e:
+        st.error(f"Error connecting to backend: {str(e)}")
+        return None
 
-with tab3:
-    if metrics['request_history']:
-        df = pd.DataFrame(metrics['request_history'])
-        
-        # Pie chart of request types
-        type_counts = df['type'].value_counts()
-        fig_pie = px.pie(
-            values=type_counts.values,
-            names=type_counts.index,
-            title='Distribution of Request Types'
-        )
-        st.plotly_chart(fig_pie, use_container_width=True)
-        
-        # Bar chart of request types
-        fig_bar = px.bar(
-            x=type_counts.index,
-            y=type_counts.values,
-            title='Request Count by Type',
-            labels={'y': 'Count', 'x': 'Request Type'}
-        )
-        st.plotly_chart(fig_bar, use_container_width=True)
-    else:
-        st.info("No metrics data available yet.")
+def get_metrics_history():
+    """Fetch metrics history"""
+    try:
+        response = requests.get(f"{API_BASE_URL}/logging/metrics/history", timeout=5)
+        if response.status_code == 200:
+            return response.json().get('history', [])
+        else:
+            return []
+    except Exception:
+        return []
 
-with tab4:
-    if metrics['request_history']:
-        df = pd.DataFrame(metrics['request_history'])
-        error_data = df[df['type'] == 'error']
+def get_health_status():
+    """Check system health"""
+    try:
+        response = requests.get(f"{API_BASE_URL}/logging/health", timeout=3)
+        return response.status_code == 200
+    except Exception:
+        return False
+
+def main():
+    st.set_page_config(
+        page_title="AI Content Analytics - Observability Dashboard",
+        page_icon="📊",
+        layout="wide"
+    )
+    
+    # Title and header
+    st.title("📊 AI Content Analytics - Observability Dashboard")
+    st.markdown("---")
+    
+    # Health status indicator
+    health_col1, health_col2 = st.columns([1, 5])
+    with health_col1:
+        is_healthy = get_health_status()
+        if is_healthy:
+            st.success("✓ System Healthy")
+        else:
+            st.error("✗ System Unhealthy")
+    
+    with health_col2:
+        st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    # Fetch metrics
+    metrics = get_metrics()
+    if not metrics:
+        st.error("Unable to fetch metrics. Please ensure the backend is running.")
+        return
+    
+    # Create tabs for different views
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "Overview", 
+        "Performance Metrics", 
+        "Error Analysis", 
+        "Endpoint Metrics"
+    ])
+    
+    with tab1:
+        # Overview metrics
+        col1, col2, col3, col4 = st.columns(4)
         
-        if not error_data.empty:
-            st.subheader("Error Overview")
-            
-            # Error count over time
-            error_data['hour'] = pd.to_datetime(error_data['timestamp']).dt.floor('H')
-            hourly_errors = error_data.groupby('hour').size().reset_index(name='error_count')
-            
-            fig_errors = px.line(
-                hourly_errors,
-                x='hour',
-                y='error_count',
-                title='Errors Over Time',
-                labels={'error_count': 'Number of Errors', 'hour': 'Time'}
+        with col1:
+            st.metric(
+                "Queries Processed", 
+                metrics.get('queries_processed', 0),
+                delta=None
             )
-            st.plotly_chart(fig_errors, use_container_width=True)
+        
+        with col2:
+            avg_response = metrics.get('average_response_time', 0)
+            st.metric(
+                "Avg Response Time (s)", 
+                f"{avg_response:.3f}",
+                delta=None
+            )
+        
+        with col3:
+            st.metric(
+                "Success Rate (%)", 
+                f"{metrics.get('success_rate', 0):.1f}",
+                delta=None
+            )
+        
+        with col4:
+            st.metric(
+                "Active Users", 
+                metrics.get('active_users', 0),
+                delta=None
+            )
+        
+        st.markdown("---")
+        
+        # Response time percentiles
+        st.subheader("Response Time Percentiles")
+        percentiles = metrics.get('response_time_percentiles', {})
+        if percentiles:
+            percentile_data = pd.DataFrame({
+                'Percentile': ['50th', '90th', '95th', '99th'],
+                'Response Time (s)': [
+                    percentiles.get('p50', 0),
+                    percentiles.get('p90', 0),
+                    percentiles.get('p95', 0),
+                    percentiles.get('p99', 0)
+                ]
+            })
             
-            # Error types
-            if 'error_type' in error_data.columns:
-                error_type_counts = error_data['error_type'].value_counts()
-                fig_error_types = px.bar(
-                    x=error_type_counts.index,
-                    y=error_type_counts.values,
-                    title='Error Types Distribution',
-                    labels={'y': 'Count', 'x': 'Error Type'}
+            fig = px.bar(
+                percentile_data,
+                x='Percentile',
+                y='Response Time (s)',
+                color='Percentile',
+                color_discrete_map={
+                    '50th': '#2E8B57',
+                    '90th': '#FFA500',
+                    '95th': '#FF6347',
+                    '99th': '#DC143C'
+                }
+            )
+            fig.update_layout(showlegend=False)
+            st.plotly_chart(fig, use_container_width=True)
+        
+        # Operation counts
+        st.subheader("Operation Counts")
+        operation_counts = {
+            'RAG Retrievals': metrics.get('rag_retrieval_count', 0),
+            'File Uploads': metrics.get('file_upload_count', 0),
+            'Agent Workflows': metrics.get('agent_workflow_count', 0),
+            'API Requests': metrics.get('api_request_count', 0)
+        }
+        
+        op_df = pd.DataFrame({
+            'Operation': list(operation_counts.keys()),
+            'Count': list(operation_counts.values())
+        })
+        
+        fig2 = px.pie(op_df, values='Count', names='Operation', title='Operations Distribution')
+        st.plotly_chart(fig2, use_container_width=True)
+    
+    with tab2:
+        st.subheader("Performance Metrics")
+        
+        # Performance metrics in columns
+        perf_col1, perf_col2 = st.columns(2)
+        
+        with perf_col1:
+            st.metric("Total Processing Time (s)", f"{metrics.get('total_processing_time', 0):.2f}")
+            st.metric("Peak Concurrent Users", metrics.get('peak_concurrent_users', 0))
+        
+        with perf_col2:
+            st.metric("Successful Requests", metrics.get('successful_requests', 0))
+            st.metric("Failed Requests", metrics.get('failed_requests', 0))
+        
+        # Response time trend (if we had historical data)
+        st.subheader("Recent Activity")
+        history = get_metrics_history()
+        if history:
+            # Filter recent entries for visualization
+            recent_history = history[-50:]  # Last 50 entries
+            
+            # Create dataframe for plotting
+            history_df = pd.DataFrame(recent_history)
+            if not history_df.empty:
+                # Convert timestamps
+                history_df['timestamp'] = pd.to_datetime(history_df['timestamp'])
+                
+                # Response time chart
+                response_times = history_df[history_df['type'] == 'query']
+                if not response_times.empty:
+                    st.subheader("Recent Query Response Times")
+                    response_fig = px.line(
+                        response_times,
+                        x='timestamp',
+                        y='response_time',
+                        title='Query Response Times Over Time'
+                    )
+                    st.plotly_chart(response_fig, use_container_width=True)
+                
+                # Activity timeline
+                st.subheader("Activity Timeline")
+                activity_counts = history_df['type'].value_counts()
+                activity_fig = px.bar(
+                    x=activity_counts.index,
+                    y=activity_counts.values,
+                    title='Activity Distribution'
                 )
-                st.plotly_chart(fig_error_types, use_container_width=True)
+                activity_fig.update_layout(xaxis_title='Activity Type', yaxis_title='Count')
+                st.plotly_chart(activity_fig, use_container_width=True)
+    
+    with tab3:
+        st.subheader("Error Analysis")
+        
+        error_metrics = {
+            'Total Errors': metrics.get('error_count', 0),
+            'Failed Requests': metrics.get('failed_requests', 0)
+        }
+        
+        # Error metrics
+        error_col1, error_col2 = st.columns(2)
+        with error_col1:
+            st.metric("Total Errors", error_metrics['Total Errors'])
+        with error_col2:
+            st.metric("Failed Requests", error_metrics['Failed Requests'])
+        
+        # Error types breakdown
+        error_types = metrics.get('error_types', {})
+        if error_types:
+            st.subheader("Error Types Breakdown")
+            error_df = pd.DataFrame({
+                'Error Type': list(error_types.keys()),
+                'Count': list(error_types.values())
+            })
             
-            # Recent errors table
-            st.subheader("Recent Errors")
-            recent_errors = error_data.nlargest(10, 'timestamp')
-            if not recent_errors.empty:
+            error_fig = px.bar(
+                error_df,
+                x='Error Type',
+                y='Count',
+                title='Error Types Distribution',
+                color='Count'
+            )
+            st.plotly_chart(error_fig, use_container_width=True)
+        
+        # Recent errors table
+        history = get_metrics_history()
+        if history:
+            error_entries = [entry for entry in history[-20:] if entry.get('type') == 'error']
+            if error_entries:
+                st.subheader("Recent Errors")
+                error_table = pd.DataFrame(error_entries)
                 st.dataframe(
-                    recent_errors[['timestamp', 'error_type', 'error_message']].rename(
-                        columns={
-                            'error_type': 'Type',
-                            'error_message': 'Message',
-                            'timestamp': 'Timestamp'
-                        }
-                    ),
+                    error_table[['timestamp', 'error_type', 'error_message']].head(10),
                     use_container_width=True
                 )
+    
+    with tab4:
+        st.subheader("Endpoint Metrics")
+        
+        endpoint_metrics = metrics.get('endpoint_metrics', {})
+        if endpoint_metrics:
+            # Endpoint performance table
+            endpoint_data = []
+            for endpoint, data in endpoint_metrics.items():
+                success_rate = (data['successful_requests'] / data['total_requests'] * 100) if data['total_requests'] > 0 else 0
+                avg_response_time = (data['total_response_time'] / data['total_requests']) if data['total_requests'] > 0 else 0
+                
+                endpoint_data.append({
+                    'Endpoint': endpoint,
+                    'Total Requests': data['total_requests'],
+                    'Success Rate (%)': round(success_rate, 2),
+                    'Avg Response Time (s)': round(avg_response_time, 3),
+                    'Successful': data['successful_requests'],
+                    'Failed': data['failed_requests']
+                })
+            
+            endpoint_df = pd.DataFrame(endpoint_data)
+            
+            # Sort by total requests
+            endpoint_df = endpoint_df.sort_values('Total Requests', ascending=False)
+            
+            st.dataframe(endpoint_df, use_container_width=True)
+            
+            # Endpoint success rate chart
+            st.subheader("Endpoint Success Rates")
+            success_fig = px.bar(
+                endpoint_df,
+                x='Endpoint',
+                y='Success Rate (%)',
+                title='Endpoint Success Rates',
+                color='Success Rate (%)',
+                color_continuous_scale='RdYlGn'
+            )
+            st.plotly_chart(success_fig, use_container_width=True)
         else:
-            st.info("No errors recorded yet.")
-    else:
-        st.info("No metrics data available yet.")
+            st.info("No endpoint metrics available yet.")
+    
+    # Auto-refresh
+    st.markdown("---")
+    if st.button("🔄 Refresh Now"):
+        st.experimental_rerun()
+    
+    # Auto-refresh timer
+    time.sleep(REFRESH_INTERVAL)
+    st.experimental_rerun()
 
-# Show raw data if requested
-if show_raw_data and metrics['request_history']:
-    st.subheader("Raw Metrics Data")
-    st.json(metrics)
-
-# Auto-refresh indicator
-st.sidebar.info(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-# Add a refresh button
-if st.sidebar.button("Refresh Data"):
-    st.session_state.last_refresh = 0  # Force refresh
-    st.rerun()
+if __name__ == "__main__":
+    main()
