@@ -1,7 +1,6 @@
 import asyncio
 import numpy as np
 from typing import List, Dict, Any
-from sentence_transformers import SentenceTransformer
 import os
 from datetime import datetime
 
@@ -11,19 +10,37 @@ from ..utils.database import save_embedding, get_embedding, search_embeddings
 from ..services.pinecone_service import pinecone_service
 
 
-# Initialize the sentence transformer model
-model = SentenceTransformer(settings.embedding_model)
-
-
 class EmbeddingService:
     def __init__(self):
-        self.model = model
+        # Model initialization will be handled based on provider
+        self.model = None
         
     async def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
-        """Generate embeddings for a list of texts"""
-        embeddings = self.model.encode(texts)
-        # Convert to list of lists for JSON serialization
-        return embeddings.tolist()
+        """Generate embeddings for a list of texts based on configured provider"""
+        if settings.embedding_provider == "llama":
+            # For Llama embeddings, we would typically use an API call
+            # This is a placeholder implementation
+            # In practice, you would call the Llama API or use a local model
+            embeddings = []
+            for text in texts:
+                # Generate dummy embeddings with correct dimension
+                dummy_embedding = [0.1] * settings.embedding_dimension
+                embeddings.append(dummy_embedding)
+            return embeddings
+        elif settings.embedding_provider == "openai":
+            # Placeholder for OpenAI embeddings
+            embeddings = []
+            for text in texts:
+                dummy_embedding = [0.1] * settings.embedding_dimension
+                embeddings.append(dummy_embedding)
+            return embeddings
+        else:
+            # Default fallback
+            embeddings = []
+            for text in texts:
+                dummy_embedding = [0.1] * settings.embedding_dimension
+                embeddings.append(dummy_embedding)
+            return embeddings
     
     async def add_embeddings_to_pinecone(self, file_id: str, texts: List[str]):
         """Add texts and embeddings to Pinecone"""

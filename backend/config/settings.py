@@ -26,7 +26,9 @@ class Settings(BaseSettings):
     
     # Vector database settings
     vector_db_collection: str = "content_embeddings"
-    embedding_model: str = "text-embedding-ada-002"  # or local model
+    embedding_model: str = "llama-text-embed-v2"
+    embedding_dimension: int = 1024
+    embedding_provider: str = "llama"  # important
     
     # Pinecone settings
     pinecone_api_key: Optional[str] = None

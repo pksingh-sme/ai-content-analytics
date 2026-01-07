@@ -7,7 +7,7 @@ import UploadSection from './components/UploadSection';
 import SearchSection from './components/SearchSection';
 import ChatSection from './components/ChatSection';
 import Dashboard from './components/Dashboard';
-import ImageAnalysis from '../components/ImageAnalysis';
+import ImageAnalysis from './components/ImageAnalysis';
 
 const AppContainer = styled.div`
   min-height: 100vh;
