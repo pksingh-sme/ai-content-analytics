@@ -253,5 +253,37 @@ async def delete_content(file_id: str) -> bool:
         return cursor.rowcount > 0
 
 
+async def get_content_by_ids(file_ids: List[str]) -> List[Dict[str, Any]]:
+    """Retrieve multiple content items by their IDs"""
+    if not file_ids:
+        return []
+    
+    placeholders = ",".join("?" * len(file_ids))
+    query = f"SELECT * FROM content WHERE file_id IN ({placeholders})"
+    
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute(query, file_ids) as cursor:
+            rows = await cursor.fetchall()
+            
+            if not rows:
+                return []
+            
+            columns = [description[0] for description in cursor.description]
+            results = []
+            
+            for row in rows:
+                result = dict(zip(columns, row))
+                
+                # Parse JSON fields
+                if result["metadata"]:
+                    result["metadata"] = json.loads(result["metadata"])
+                if result["tags"]:
+                    result["tags"] = json.loads(result["tags"])
+                
+                results.append(result)
+            
+            return results
+
+
 # Initialize the database when module is loaded
 asyncio.create_task(init_db())
