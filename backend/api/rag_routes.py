@@ -2,8 +2,8 @@ from fastapi import APIRouter, HTTPException
 from typing import Dict, Any
 import logging
 
-from ..models.content import QueryRequest
-from ..services.rag_service import rag_pipeline
+from models.content import QueryRequest
+from services.rag_service import rag_pipeline
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

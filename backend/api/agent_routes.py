@@ -2,9 +2,9 @@ from fastapi import APIRouter, HTTPException
 from typing import Dict, Any, List
 import logging
 
-from ..models.content import AgentRequest, AgentResponse
-from ..services.agent_orchestrator import agent_orchestrator
-from ..services.agent import Agent
+from models.content import AgentRequest, AgentResponse
+from services.agent_orchestrator import agent_orchestrator
+from services.agent import Agent
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ async def create_workflow(
     Create a new multi-step workflow
     """
     try:
-        from ..services.agent_orchestrator import AgentStep, AgentStepType
+        from services.agent_orchestrator import AgentStep, AgentStepType
         
         # Convert dict steps to AgentStep objects
         agent_steps = []

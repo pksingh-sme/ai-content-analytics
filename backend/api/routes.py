@@ -4,20 +4,15 @@ import uuid
 import os
 from datetime import datetime
 
-from ..models.content import (
+from models.content import (
     FileUploadResponse, QueryRequest, QueryResponse, 
     AgentRequest, AgentResponse, ContentMetadata, SearchResult,
     ContentType, ProcessingStatus
 )
-from ..services.upload_service import process_file_upload
-from ..services.query_service import semantic_search_and_answer
-from ..services.agent_service import execute_agent_workflow
-from ..services.metadata_service import get_content_metadata
-from ..api.blip2_routes import router as blip2_router
-from ..api.rag_routes import router as rag_router
-from ..api.agent_routes import router as agent_router
-from ..evaluation.api import router as evaluation_router
-from ..logging.api import router as logging_router
+from services.upload_service import process_file_upload
+from services.query_service import semantic_search_and_answer
+from services.agent_service import execute_agent_workflow
+from services.metadata_service import get_content_metadata
 
 router = APIRouter()
 
@@ -151,7 +146,7 @@ async def search_content(query: str, top_k: int = 5):
     """
     try:
         # This is a simplified version - in practice, you'd use the query service
-        from ..services.query_service import semantic_search
+        from services.query_service import semantic_search
         results = await semantic_search(query, top_k)
         return results
     except Exception as e:

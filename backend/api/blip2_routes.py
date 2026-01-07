@@ -4,8 +4,8 @@ import uuid
 import os
 from datetime import datetime
 
-from ..models.content import ContentType
-from ..services.blip2_service import blip2_service
+from models.content import ContentType
+from services.blip2_service import blip2_service
 
 router = APIRouter()
 

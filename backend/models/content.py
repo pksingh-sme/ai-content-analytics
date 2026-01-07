@@ -30,9 +30,10 @@ class QueryRequest(BaseModel):
 
 class QueryResponse(BaseModel):
     query: str
-    answer: str
+    response: str
     sources: List[str]
     confidence: float
+    timestamp: datetime
 
 class AgentRequest(BaseModel):
     query: str
